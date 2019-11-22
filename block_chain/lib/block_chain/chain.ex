@@ -1,12 +1,40 @@
 defmodule BlockChain.Chain do
 
+  use GenServer
+
   alias BlockChain.Chain
   alias BlockChain.Block
   alias BlockChain.Crypto
 
+  def init(state) do
+    {:ok, state}
+  end
+
+  def start_link(state \\ []) do
+    GenServer.start_link(__MODULE__ ,[state] ,name: Chain)
+  end
+
+  def handle_call({:chain, block}, _from, state) do
+    {:reply,[block | state], [block | state]}
+  end
+
+  def handle_call(:get, _from, state) do
+    {:reply, state, state}
+  end
+
+  def setChain(block) do
+    GenServer.call(Chain, {:chain, block})
+  end
+
+  def getChain() do
+    GenServer.call(Chain, :get)
+  end
+
     @doc "Create a new blockchain with a zero block"
   def new do
-    [ Crypto.put_hash(Block.zero) ]
+    chain = Crypto.put_hash(Block.zero)
+    start_link(chain)
+    [chain]
   end
 
   @doc "Insert given data as a new block in the blockchain"
@@ -18,7 +46,7 @@ defmodule BlockChain.Chain do
     |> Block.new(prev)
     |> Crypto.put_hash
   
-    [ block | blockchain ]
+    setChain(block)
   end
   
   

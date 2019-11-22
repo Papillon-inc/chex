@@ -17,6 +17,8 @@ defmodule BlockChainWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+
+    get "/chain", PageController, :chain
   end
 
   # Other scopes may use custom stacks.
