@@ -1,17 +1,19 @@
 defmodule BlockChain.Block do
-  defstruct [:data, :timestamp, :prev_hash, :hash, :nonce]
+  defstruct [:data, :timestamp, :prev_hash, :hash, :nonce,:index]
 
   alias BlockChain.Chain
   alias BlockChain.Block
   alias BlockChain.Crypto
+  alias BlockChain.Transaction
 
 
   @doc "Build a new block for given data and previous hash"
-  def new(data, prev_hash) do
+  def new(data, prev_hash, index) do
     %Block{
       data: data,
       prev_hash: prev_hash,
       timestamp: NaiveDateTime.utc_now,
+      index: index + 1,
     }
   end
 
@@ -22,6 +24,7 @@ defmodule BlockChain.Block do
       data: "ZERO_DATA",
       prev_hash: "ZERO_HASH",
       timestamp: NaiveDateTime.utc_now,
+      index: 0,
     }
   end
 

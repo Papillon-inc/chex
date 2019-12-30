@@ -3,7 +3,8 @@ defmodule BlockChainWeb.UserSocket do
 
   ## Channels
   # channel "room:*", BlockChainWeb.RoomChannel
-
+  transport :websocket, Phoenix.Transports.WebSocket
+  channel "chain:*", BlockChainWeb.ChainChannel
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After
   # verification, you can put default assigns into

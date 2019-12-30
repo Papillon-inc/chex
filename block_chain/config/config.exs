@@ -7,10 +7,13 @@
 # General application configuration
 use Mix.Config
 
+config :block_chain,
+  ecto_repos: [BlockChain.Repo]
+
 # Configures the endpoint
 config :block_chain, BlockChainWeb.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "pG0nFfRQTeQD2IxL2/uqQtb0JuAwHMOWxcVGCxYd3Bcc+hthO61tagfHepqvA8YX",
+  secret_key_base: "tpld0mAFQeAz3yAeeYwSBQwFmnq+p5yMfLQ+G2FkIipUUrwoBl4wLOAuOOKBgmJm",
   render_errors: [view: BlockChainWeb.ErrorView, accepts: ~w(html json)],
   pubsub: [name: BlockChain.PubSub, adapter: Phoenix.PubSub.PG2]
 
