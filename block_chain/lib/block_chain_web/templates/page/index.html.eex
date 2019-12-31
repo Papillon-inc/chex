@@ -5,6 +5,10 @@
   <h2>Hello World, from Phoenix! <%= @id %></h2>
   <input type="hidden" value="<%= @id %>" id="ID">
   <button type="button"  id="join">join</button>
+  <button type="button" id="new">new</button>
   <button type="button" id="push">push</button>
   <button type="button" id="get">get</button>
+  <br>sender:<input type="textbox" id="sender">
+  <br>recipient:<input type="textbox" id="recipient">
+  <br>amount:<input type="textbox" id="amount">
 </div>

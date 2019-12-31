@@ -24,6 +24,7 @@ defmodule BlockChain.Chain do
 
   # def setChain(block) do
   #   GenServer.call(__MODULE__, {:chain, block})
+    
   # end
 
   def getChain(id) do
@@ -43,7 +44,7 @@ defmodule BlockChain.Chain do
   end
 
   @doc "Insert given data as a new block in the blockchain"
-  def insert(blockchain, data) when is_list(blockchain) do
+  def insert(blockchain, data, id) when is_list(blockchain) do
     %Block{hash: prev, index: index} = hd blockchain
 
     block =
@@ -51,7 +52,11 @@ defmodule BlockChain.Chain do
     |> Block.new(prev, index)
     |> Crypto.put_hash
   
+    :ets.insert(String.to_atom("chain" <> id), {:block, [block | blockchain]})
+    IO.inspect getChain(id)
+    block
     # setChain(block)
+
   end
   
   

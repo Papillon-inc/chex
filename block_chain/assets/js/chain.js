@@ -15,21 +15,27 @@ let Chain = {
         })
 
         let id = document.getElementById("ID")
-        document.getElementById("push").onclick = () =>{this.newChain(channel, id.value)}
+        let sender = document.getElementById("sender")
+        let reci = document.getElementById("recipient")
+        let amount = document.getElementById("amount")
+        document.getElementById("new").onclick = () =>{this.newChain(channel, id.value)}
         document.getElementById("get").onclick = () =>{this.getChain(channel, id.value)}
+        document.getElementById("push").onclick = () =>{this.pushChain(channel, id.value, sender.value, reci.value, amount.value)}
     },
 
     newChain:function(channel, id){
-        console.log("aaa")
         let i = 0
         channel.push("new",{body:"aaa", id: id})
         
     },
     getChain:function(channel, id){
-        console.log("aaa")
         channel.push("get",{body:"aaa", id: id})
         
-    }
+    },
+
+    pushChain:function(channel, id, sender, reci, amount){
+        channel.push("push", {id: id, sender: sender, recipient: reci, amount: amount})
+    },
 }
 
 export default Chain
