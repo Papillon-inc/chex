@@ -8,6 +8,7 @@
   <button type="button" id="new">new</button>
   <button type="button" id="push">push</button>
   <button type="button" id="get">get</button>
+  <button type="button" id="chain">chain</button>
   <br>sender:<input type="textbox" id="sender">
   <br>recipient:<input type="textbox" id="recipient">
   <br>amount:<input type="textbox" id="amount">

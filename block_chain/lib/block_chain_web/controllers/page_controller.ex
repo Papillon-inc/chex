@@ -6,8 +6,8 @@ defmodule BlockChainWeb.PageController do
     # map = Map.from_struct(hd BlockChain.Chain.new())
     pid = :ets.new(:chain, [:set, :private, :named_table])
     t = :ets.insert(:chain, [block: "aaa", c: "bbb"])
-    look = :ets.lookup(:chain, :c)
-    json(conn, %{body: look[:c]})
+    look = :ets.lookup(:chain, :block)
+    json(conn, %{body: look[:block]})
   end
 
   def chain(conn, _params) do

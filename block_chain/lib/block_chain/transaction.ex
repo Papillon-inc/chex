@@ -23,7 +23,7 @@ defmodule BlockChain.Transaction do
     # end
 
     def getTran(id) do
-        :ets.lookup(String.to_atom("chain" <> id), :tran) 
+        :ets.lookup(String.to_atom("chain" <> id), :tran)[:tran]
     end
 
     def insert(sender, recipient, amount, id)  do
@@ -32,9 +32,11 @@ defmodule BlockChain.Transaction do
             recipient: recipient,
             amount: amount,
         }
+        |> Map.from_struct
 
+        
         :ets.insert(String.to_atom("chain" <> id), {:tran, [tran | getTran(id)]})
-        getTran(id)[:tran]
+        getTran(id)
     end
 
     # def insert(sender, recipient, amount, id) do
@@ -48,8 +50,9 @@ defmodule BlockChain.Transaction do
     #     getTran[id]
     # end
 
-    def reset() do
+    def reset(id) do
         # GenServer.call(Tran, :reset)
+        :ets.insert(String.to_atom("chain" <> id),{:tran,[]})
     end
 
 

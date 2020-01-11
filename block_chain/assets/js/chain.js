@@ -14,6 +14,10 @@ let Chain = {
             console.log(payload)
         })
 
+        channel.on("chain", payload =>{
+            console.log(payload)
+        })
+
         let id = document.getElementById("ID")
         let sender = document.getElementById("sender")
         let reci = document.getElementById("recipient")
@@ -21,6 +25,7 @@ let Chain = {
         document.getElementById("new").onclick = () =>{this.newChain(channel, id.value)}
         document.getElementById("get").onclick = () =>{this.getChain(channel, id.value)}
         document.getElementById("push").onclick = () =>{this.pushChain(channel, id.value, sender.value, reci.value, amount.value)}
+        document.getElementById("chain").onclick = () => {this.creatChain(channel, id.value)}
     },
 
     newChain:function(channel, id){
@@ -35,6 +40,10 @@ let Chain = {
 
     pushChain:function(channel, id, sender, reci, amount){
         channel.push("push", {id: id, sender: sender, recipient: reci, amount: amount})
+    },
+
+    creatChain: function(channel, id){
+        channel.push("chain", {id: id})
     },
 }
 
