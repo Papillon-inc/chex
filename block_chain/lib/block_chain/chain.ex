@@ -1,15 +1,13 @@
 defmodule BlockChain.Chain do
 
-
-  alias BlockChain.Chain
   alias BlockChain.Block
   alias BlockChain.Crypto
   alias BlockChain.Transaction
   alias BlockChain.User
 
-  def init(state) do
-    {:ok, state}
-  end
+  # def init(state) do
+  #   {:ok, state}
+  # end
 
   # def start_link(state \\ []) do
   #   GenServer.start(__MODULE__ ,state, name: __MODULE__)
@@ -36,15 +34,13 @@ defmodule BlockChain.Chain do
 
     @doc "Create a new blockchain with a zero block"
   def new(id) do
-    chain = Crypto.put_hash(Block.zero)
-    |> Map.from_struct
+    chain = creatChain()
+    tran = creatTran()
     # start_link([chain])
     # Transaction.start_link()
-    User.start_link()
-    User.setUser(id)
-    IO.inspect User.getUser()
     :ets.new(String.to_atom("chain" <> id),[:set, :protected, :named_table])
-    :ets.insert(String.to_atom("chain" <> id), [block: [chain], tran: [] ])
+    :ets.insert(String.to_atom("chain" <> id), [block: [chain], tran: tran ])
+    User.setUser(id)
     [chain]
   end
 
@@ -84,4 +80,24 @@ defmodule BlockChain.Chain do
   
   if zero, do: Block.valid?(zero), else: false
   end
+
+  def creatChain() do
+    user = User.getUser()
+    if user != [] do
+      getChain(hd user)
+    else
+      Crypto.put_hash(Block.zero)
+      |> Map.from_struct
+    end
   end
+
+  def creatTran() do
+    user = User.getUser()
+    if user != [] do
+      Transaction.getTran(hd user)
+    else
+      []
+    end
+  end
+    
+end

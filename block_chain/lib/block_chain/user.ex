@@ -9,7 +9,10 @@ defmodule BlockChain.User do
 
     def handle_call(:get, _from, state), do: {:reply, state, state}
 
-    def handle_cast({:set, user}, state), do: {:noreply, [user | state]}
+    def handle_cast({:set, user}, state) do
+        st = state -- [user]
+        {:noreply, [user | st]}
+    end
 
     def handle_cast({:delete, user}, state), do: {:noreply, state --[user]}
 
@@ -25,3 +28,5 @@ defmodule BlockChain.User do
         GenServer.cast(User, {:delete, user})
     end
 end
+
+BlockChain.User.start_link()

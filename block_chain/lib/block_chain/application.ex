@@ -9,9 +9,10 @@ defmodule BlockChain.Application do
     # List all child processes to be supervised
     children = [
       # Start the endpoint when the application starts
-      BlockChainWeb.Endpoint
+      BlockChainWeb.Endpoint,
       # Starts a worker by calling: BlockChain.Worker.start_link(arg)
       # {BlockChain.Worker, arg},
+      BlockChain.User
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

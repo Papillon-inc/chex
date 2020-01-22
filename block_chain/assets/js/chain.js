@@ -31,7 +31,6 @@ let Chain = {
     newChain:function(channel, id){
         let i = 0
         channel.push("new",{body:"aaa", id: id})
-        
     },
     getChain:function(channel, id){
         channel.push("get",{body:"aaa", id: id})
