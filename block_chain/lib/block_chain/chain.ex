@@ -34,12 +34,12 @@ defmodule BlockChain.Chain do
 
     @doc "Create a new blockchain with a zero block"
   def new(id) do
-    chain = creatChain()
-    tran = creatTran()
+    chain = creatChain(id)
+    tran = creatTran(id)
     # start_link([chain])
     # Transaction.start_link()
     :ets.new(String.to_atom("chain" <> id),[:set, :protected, :named_table])
-    :ets.insert(String.to_atom("chain" <> id), [block: [chain], tran: tran ])
+    :ets.insert(String.to_atom("chain" <> id), [block: chain, tran: tran ])
     User.setUser(id)
     [chain]
   end
@@ -53,13 +53,19 @@ defmodule BlockChain.Chain do
     |> Block.new(prev, index)
     |> Crypto.put_hash
     |> Map.from_struct
-
+    IO.inspect block
     Transaction.reset(id)
   
     :ets.insert(String.to_atom("chain" <> id), {:block, [block | blockchain]})
     getChain(id)
     # setChain(block)
 
+  end
+
+  def insert(chain ,id) do
+    IO.inspect id
+    :ets.insert(String.to_atom("chain" <> id), {:block, [chain | getChain(id)]})
+    getChain(id)
   end
   
   
@@ -81,23 +87,41 @@ defmodule BlockChain.Chain do
   if zero, do: Block.valid?(zero), else: false
   end
 
-  def creatChain() do
-    user = User.getUser()
-    if user != [] do
-      getChain(hd user)
+  def creatChain(id) do
+    
+    errorUser = User.getUsers() |> Enum.reduce_while([], fn user, acc ->
+      try do
+        if user |> getChain |> Enum.map(fn(x) -> Map.put(x, :__struct__, Block) end) |> valid? do
+          {:cont, acc}
+        else
+          {:cont, [acc | user]}
+        end
+
+      rescue
+        e in ArgumentError -> User.deleteUser(user)
+        {:cont, acc}
+      end
+      
+    end)
+    users = User.getUsers()
+    IO.inspect users
+    if users != [] do
+      if errorUser ==[] do
+        getChain(hd users)
+      end
     else
-      Crypto.put_hash(Block.zero)
+      block = Crypto.put_hash(Block.zero)
       |> Map.from_struct
+      [block]
     end
   end
 
-  def creatTran() do
-    user = User.getUser()
+  def creatTran(id) do
+    user = User.getUsers()
     if user != [] do
       Transaction.getTran(hd user)
     else
       []
     end
   end
-    
 end

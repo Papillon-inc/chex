@@ -6,6 +6,11 @@ let Chain = {
         .receive("ok", resp => { console.log("Joined successfully", resp) })
         .receive("error", resp => { console.log("Unable to join", resp) })
 
+        let id = document.getElementById("ID")
+        let sender = document.getElementById("sender")
+        let reci = document.getElementById("recipient")
+        let amount = document.getElementById("amount")
+
         channel.on("new", payload =>{
             console.log(payload)
         })
@@ -18,14 +23,17 @@ let Chain = {
             console.log(payload)
         })
 
-        let id = document.getElementById("ID")
-        let sender = document.getElementById("sender")
-        let reci = document.getElementById("recipient")
-        let amount = document.getElementById("amount")
+        channel.on("inform", payload => {
+            console.log(payload)
+            console.log(id)
+            channel.push("newChain", {chain_id: payload.id, id: id.value})
+        })
+
         document.getElementById("new").onclick = () =>{this.newChain(channel, id.value)}
         document.getElementById("get").onclick = () =>{this.getChain(channel, id.value)}
         document.getElementById("push").onclick = () =>{this.pushChain(channel, id.value, sender.value, reci.value, amount.value)}
         document.getElementById("chain").onclick = () => {this.creatChain(channel, id.value)}
+        document.getElementById("delete").onclick = () => {this.deleteUser(channel, id.value)}
     },
 
     newChain:function(channel, id){
@@ -44,6 +52,10 @@ let Chain = {
     creatChain: function(channel, id){
         channel.push("chain", {id: id})
     },
+
+    deleteUser: function(channel, id){
+        channel.push("delete", {id: id})
+    }
 }
 
 export default Chain

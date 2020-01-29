@@ -20,7 +20,7 @@ defmodule BlockChain.User do
         GenServer.cast(User, {:set, user})
     end
 
-    def getUser() do
+    def getUsers() do
         GenServer.call(User, :get)
     end
 
