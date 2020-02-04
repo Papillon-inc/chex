@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <script type="module" src="/js/app.js"></script>
 <script type="text/javascript">
 </script>
@@ -10,6 +11,7 @@
   <button type="button" id="get">get</button>
   <button type="button" id="chain">chain</button>
   <button type="button" id="delete">delete</button>
+  <button type="button" id="e_new">e_new</button>
   <br>sender:<input type="textbox" id="sender">
   <br>recipient:<input type="textbox" id="recipient">
   <br>amount:<input type="textbox" id="amount">

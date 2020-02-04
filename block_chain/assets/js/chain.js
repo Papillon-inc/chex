@@ -12,10 +12,15 @@ let Chain = {
         let amount = document.getElementById("amount")
 
         channel.on("new", payload =>{
-            console.log(payload)
+            console.log(payload.chain)
         })
 
         channel.on("get", payload =>{
+            console.log(payload.chain)
+            console.log(payload.tran)
+        })
+
+        channel.on("tran", payload =>{
             console.log(payload)
         })
 
@@ -26,7 +31,11 @@ let Chain = {
         channel.on("inform", payload => {
             console.log(payload)
             console.log(id)
-            channel.push("newChain", {chain_id: payload.id, id: id.value})
+            if(payload.mode == "0"){
+                channel.push("newChain", {chain_id: payload.id, id: id.value})
+            }else if(payload.mode == "1"){
+                channel.push("newTran", {tran_id: payload.id, id: id.value})
+            }
         })
 
         document.getElementById("new").onclick = () =>{this.newChain(channel, id.value)}
@@ -34,6 +43,7 @@ let Chain = {
         document.getElementById("push").onclick = () =>{this.pushChain(channel, id.value, sender.value, reci.value, amount.value)}
         document.getElementById("chain").onclick = () => {this.creatChain(channel, id.value)}
         document.getElementById("delete").onclick = () => {this.deleteUser(channel, id.value)}
+        document.getElementById("e_new").onclick = () => {this.eNew(channel, id.value)}
     },
 
     newChain:function(channel, id){
@@ -55,7 +65,11 @@ let Chain = {
 
     deleteUser: function(channel, id){
         channel.push("delete", {id: id})
-    }
+    },
+
+    eNew: function(channel, id){
+        channel.push("e_new", {id: id})
+    },
 }
 
 export default Chain

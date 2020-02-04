@@ -10,20 +10,19 @@ defmodule BlockChainWeb.ChainChannel do
     end
 
     def handle_in("new",params,socket) do
-        # map = Map.from_struct(hd Chain.new(params["id"]))
+        Chain.vote()
         push(socket,"new", %{chain: Chain.new(params["id"])})
         {:noreply, socket}
     end
 
     def handle_in("get",params,socket) do
-        # map = Map.from_struct(hd Chain.getChain(params["id"]))
-        push(socket,"get", %{chain: Chain.getChain(params["id"])})
+        push(socket,"get", %{chain: Chain.getChain(params["id"]), tran: Transaction.getTran(params["id"])})
         {:noreply, socket}
     end
 
     def handle_in("push",params,socket) do
-        # map = Map.from_struct(hd Transaction.insert(params["sender"], params["recipient"], params["amount"], params["id"]))
-        push(socket,"get", %{transaction: Transaction.insert(params["sender"], params["recipient"], params["amount"], params["id"])})
+        broadcast_from!(socket, "newTran", %{id: params["id"]})
+        push(socket,"tran", %{transaction: Transaction.insert(params["sender"], params["recipient"], params["amount"], params["id"])})
         {:noreply, socket}
     end
 
@@ -38,21 +37,48 @@ defmodule BlockChainWeb.ChainChannel do
     def handle_in("delete", params, socket) do
         id = params["id"]
         User.deleteUser(id)
-        IO.puts 123456
         {:noreply, socket}
     end
 
     def handle_in("newChain", params, socket) do
         ########################
-        IO.inspect params["id"]
-        hd Chain.getChain(params["chain_id"])
-        |> Chain.insert(params["id"])
+        Chain.getChain(params["chain_id"])
+        |> hd
+        |> Chain.confirm(params["id"])
         {:noreply, socket}
     end
 
-    intercept ["newChain"]
+    def handle_in("newTran", params, socket) do
+        Transaction.getTran(params["tran_id"])
+        |>hd
+        |> Transaction.insert(params["id"])
+        {:noreply, socket}
+    end
+
+    intercept ["newChain","newTran"]
     def handle_out("newChain", params, socket) do
+        push(socket, "inform", %{mode: "0", id: params.id})
+        {:noreply, socket}
+    end
+
+    def handle_out("newTran", params, socket) do
         push(socket, "inform", %{mode: "1", id: params.id})
         {:noreply, socket}
     end
+
+
+
+    # ----------error_test---------------
+    
+    def handle_in("e_new", params, socket) do
+        id = params["id"]
+        block = BlockChain.Crypto.put_hash(BlockChain.Block.zero)
+        |> Map.from_struct
+        :ets.new(String.to_atom("chain" <> id),[:set, :protected, :named_table])
+        :ets.insert(String.to_atom("chain" <> id), [block: [block], tran: [] ])
+        User.setUser(id)
+        push(socket, "get", %{chain: Chain.getChain(params["id"]), tran: Transaction.getTran(params["id"])})
+        {:noreply, socket}
+    end
+
 end
