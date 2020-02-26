@@ -10,8 +10,11 @@ defmodule BlockChainWeb.ChainChannel do
     end
 
     def handle_in("new",params,socket) do
-        Chain.vote()
-        push(socket,"new", %{chain: Chain.new(params["id"])})
+        ch = Chain.new(params["id"])
+        if ch != [] do
+            broadcast_from!(socket, "errorChain", %{error: ch})
+        end
+        push(socket,"new", %{chain: Chain.getChain(params["id"])})
         {:noreply, socket}
     end
 
@@ -55,7 +58,12 @@ defmodule BlockChainWeb.ChainChannel do
         {:noreply, socket}
     end
 
-    intercept ["newChain","newTran"]
+    def handle_in("errorUser", params, socket) do
+        Chain.errorNew(params["id"], params["error"])
+        {:noreply, socket}
+    end
+
+    intercept ["newChain","newTran","errorChain"]
     def handle_out("newChain", params, socket) do
         push(socket, "inform", %{mode: "0", id: params.id})
         {:noreply, socket}
@@ -63,6 +71,11 @@ defmodule BlockChainWeb.ChainChannel do
 
     def handle_out("newTran", params, socket) do
         push(socket, "inform", %{mode: "1", id: params.id})
+        {:noreply, socket}
+    end
+
+    def handle_out("errorChain", params, socket) do
+        push(socket, "inform", %{error: params.error, mode: "2"})
         {:noreply, socket}
     end
 
@@ -78,6 +91,13 @@ defmodule BlockChainWeb.ChainChannel do
         :ets.insert(String.to_atom("chain" <> id), [block: [block], tran: [] ])
         User.setUser(id)
         push(socket, "get", %{chain: Chain.getChain(params["id"]), tran: Transaction.getTran(params["id"])})
+        {:noreply, socket}
+    end
+
+    def handle_in("setUser", params, socket) do
+        id = params["id"]
+        User.setUser(id)
+        push(socket, "user", %{user: User.getUsers})
         {:noreply, socket}
     end
 

@@ -18,9 +18,9 @@ defmodule BlockChain.Chain do
     # start_link([chain])
     # Transaction.start_link()
     :ets.new(String.to_atom("chain" <> id),[:set, :protected, :named_table])
-    :ets.insert(String.to_atom("chain" <> id), [block: chain, tran: tran ])
+    :ets.insert(String.to_atom("chain" <> id), [block: (hd chain), tran: tran ])
     User.setUser(id)
-    [chain]
+    Enum.at(chain,1)
   end
 
   @doc "Insert given data as a new block in the blockchain"
@@ -73,16 +73,33 @@ defmodule BlockChain.Chain do
 
   def creatChain(id) do
     
-    errorUser = User.getUsers() |> Enum.reduce_while([nil,[]], fn user, acc ->
+    errorUser = User.getUsers() |> Enum.reduce_while([nil,[],true], fn user, acc ->
       try do
         chain = user |> getChain
-        if ( (hd chain).hash == (hd acc).hash and (hd chian).index == (hd acc).index ) or !(hd acc)
-        if user |> getChain |> Enum.map(fn(x) -> Map.put(x, :__struct__, Block) end) |> valid? do
-          {:cont, acc}
-        else
-          {:cont, [acc | user]}
+        c = hd chain
+        ac = hd acc
+        # if !ac or ( c.hash == (hd ac).hash and c.index == (hd ac).index ) do
+        cond do
+        !ac ->
+          if chain |> Enum.map(fn(x) -> Map.put(x, :__struct__, Block) end) |> valid? do
+            {:cont, [chain, Enum.at(acc,1), Enum.at(acc,2)]}
+          else
+            User.deleteUser(user)
+            {:cont, [(hd acc) , Enum.at(acc,1), false]}
+          end
+        ac == chain ->
+          {:cont, [(hd acc) , Enum.at(acc,1), Enum.at(acc,2)]}
+        # else
+          # {:cont, [(hd acc), [user | Enum.at(acc, 1)], Enum.at(acc, 2)]}
+        true ->
+          if chain |> Enum.map(fn(x) -> Map.put(x, :__struct__, Block) end) |> valid? do
+            {:cont, [(hd acc), [user | Enum.at(acc, 1)], Enum.at(acc, 2)]}
+          else
+            User.deleteUser(user)
+            {:cont, [(hd acc) , Enum.at(acc,1), false]}
+          end
         end
-
+        
       rescue
         e in ArgumentError -> User.deleteUser(user)
         {:cont, acc}
@@ -91,13 +108,23 @@ defmodule BlockChain.Chain do
     end)
     users = User.getUsers()
     if users != [] do
-      if errorUser ==[] do
-        getChain(hd users)
+      if Enum.at(errorUser,1) != [] do
+        if div(length(users), 2) < Enum.at(errorUser,1) |> length do
+          vote()
+        # else
+        #   Enum.reduce(Enum.at(errorUser,1), nil, fn user, _u ->
+        #     User.deleteUser(user)
+        #   end)
+        end
       end
+      us = users -- Enum.at(errorUser, 1)
+      ch = Enum.at(us, id |> String.to_integer |> rem(length(us)))
+      User.setUser(ch)
+      [getChain(ch), Enum.at(errorUser,1)]
     else
       block = Crypto.put_hash(Block.zero)
       |> Map.from_struct
-      [block]
+      [[block],Enum.at(errorUser,1)]
     end
   end
 
@@ -114,26 +141,28 @@ defmodule BlockChain.Chain do
 
       try do
         chain = getChain(user)
-        if chain |> Enum.map(fn(x) -> Map.put(x, :__struct__, Block) end) |> valid? do
         
-          block = Enum.reduce_while(acc, nil, fn blockchain, _ch ->
-            if (hd blockchain) == chain do
-              {:halt, blockchain}
-            else
-              {:cont, nil}
-            end
-          end)
-          if  block do
-            newAcc = acc -- [block]
-            users = Enum.at block,1
-            {:cont, [[chain,[user | users]] | newAcc]}
+        block = Enum.reduce_while(acc, nil, fn blockchain, _ch ->
+          if (hd blockchain) == chain do
+            {:halt, blockchain}
           else
-            {:cont, [[chain, [user]] | acc]}
+            {:cont, nil}
           end
-
+        end)
+        if  block do
+          newAcc = acc -- [block]
+          users = Enum.at block,1
+          {:cont, [[chain,[user | users]] | newAcc]}
         else
-          {:cont, acc}
+          if chain |> Enum.map(fn(x) -> Map.put(x, :__struct__, Block) end) |> valid? do
+            {:cont, [[chain, [user]] | acc]}
+          else
+            User.deleteUser(user)
+            {:cont, acc}
+          end
         end
+
+        
 
       rescue
         e in ArgumentError -> User.deleteUser(user)
@@ -158,11 +187,19 @@ defmodule BlockChain.Chain do
           {:cont, max}
         end
       end)
-      IO.inspect vot -- [v]
       Enum.reduce(vot -- [v], [], fn chain, users ->
-        Enum.at(chain,1) ++ users
+        Enum.reduce(Enum.at(chain, 1), nil, fn user, _c ->
+          User.deleteUser(user)
+        end)
       end)
+
+      Enum.at(v,1)
     end
-    |> IO.inspect
+  end
+
+  def errorNew(id, errorUser) do
+    chain = creatChain(id)
+    tran = Transaction.creatTran(id)
+    :ets.insert(String.to_atom("chain" <> id), [block: (hd chain), tran: tran ])
   end
 end

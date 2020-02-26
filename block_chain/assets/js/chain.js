@@ -10,7 +10,7 @@ let Chain = {
         let sender = document.getElementById("sender")
         let reci = document.getElementById("recipient")
         let amount = document.getElementById("amount")
-
+        let us = document.getElementById("user")
         channel.on("new", payload =>{
             console.log(payload.chain)
         })
@@ -28,13 +28,22 @@ let Chain = {
             console.log(payload)
         })
 
+        channel.on("user", payload =>{
+            console.log(payload)
+        })
+
         channel.on("inform", payload => {
             console.log(payload)
-            console.log(id)
+            console.log(id.value)
             if(payload.mode == "0"){
                 channel.push("newChain", {chain_id: payload.id, id: id.value})
             }else if(payload.mode == "1"){
                 channel.push("newTran", {tran_id: payload.id, id: id.value})
+            }else if(payload.mode == "2"){
+                const user = payload.error.find(error => error == id.value)
+                if(user){
+                    channel.push("errorUser",{id: id.value, error: payload.error})
+                }
             }
         })
 
@@ -43,6 +52,7 @@ let Chain = {
         document.getElementById("push").onclick = () =>{this.pushChain(channel, id.value, sender.value, reci.value, amount.value)}
         document.getElementById("chain").onclick = () => {this.creatChain(channel, id.value)}
         document.getElementById("delete").onclick = () => {this.deleteUser(channel, id.value)}
+        document.getElementById("setUser").onclick = () => {this.setUser(channel, id.value, us.value)}
         document.getElementById("e_new").onclick = () => {this.eNew(channel, id.value)}
     },
 
@@ -65,6 +75,10 @@ let Chain = {
 
     deleteUser: function(channel, id){
         channel.push("delete", {id: id})
+    },
+
+    setUser: function(channel, id, us){
+        channel.push("setUser", {id: us})
     },
 
     eNew: function(channel, id){
