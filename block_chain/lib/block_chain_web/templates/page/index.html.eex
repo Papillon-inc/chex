@@ -12,6 +12,7 @@
   <button type="button" id="chain">chain</button>
   <button type="button" id="delete">delete</button>
   <button type="button" id="setUser">setUser</button>
+  <button type="button" id="point">point</button>
   <button type="button" id="e_new">e_new</button>
 
   <br>user:<input type="textbox" id="user">

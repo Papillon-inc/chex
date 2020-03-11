@@ -11,7 +11,7 @@ defmodule BlockChainWeb.PageController do
   end
 
   def chain(conn, _params) do
-    ch = BlockChain.Chain.getChain()
+    ch = BlockChain.Chain.getChain("0")
     IO.inspect ch
     map = Map.from_struct(hd BlockChain.Chain.insert(ch, "aaa"))
     json(conn, map)

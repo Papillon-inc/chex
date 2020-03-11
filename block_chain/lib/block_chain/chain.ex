@@ -15,8 +15,6 @@ defmodule BlockChain.Chain do
   def new(id) do
     chain = creatChain(id)
     tran = Transaction.creatTran(id)
-    # start_link([chain])
-    # Transaction.start_link()
     :ets.new(String.to_atom("chain" <> id),[:set, :protected, :named_table])
     :ets.insert(String.to_atom("chain" <> id), [block: (hd chain), tran: tran ])
     User.setUser(id)
@@ -32,7 +30,6 @@ defmodule BlockChain.Chain do
     |> Block.new(prev, index)
     |> Crypto.put_hash
     |> Map.from_struct
-    IO.inspect block
     Transaction.reset(id)
   
     :ets.insert(String.to_atom("chain" <> id), {:block, [block | blockchain]})
@@ -42,7 +39,6 @@ defmodule BlockChain.Chain do
   end
 
   def insert(chain ,id) do
-    IO.inspect id
     :ets.insert(String.to_atom("chain" <> id), {:block, [chain | getChain(id)]})
     getChain(id)
   end
@@ -110,17 +106,39 @@ defmodule BlockChain.Chain do
     if users != [] do
       if Enum.at(errorUser,1) != [] do
         if div(length(users), 2) < Enum.at(errorUser,1) |> length do
-          vote()
-        # else
-        #   Enum.reduce(Enum.at(errorUser,1), nil, fn user, _u ->
-        #     User.deleteUser(user)
-        #   end)
+          error = Enum.at(errorUser,1)
+          bl = error |> hd |> getChain
+          if Enum.all?(tl(error), fn(us) -> bl == getChain(us) end) do
+            us = Enum.at(errorUser, 1)
+            ch = Enum.at(us, id |> String.to_integer |> rem(length(us)))
+            User.setUser(ch)
+            [getChain(ch), users -- Enum.at(errorUser,1)]
+          else
+            eu = vote(Enum.at(errorUser,1))
+            us = (users -- Enum.at(errorUser,1))
+            if eu |> length > us |> length do
+              ch = Enum.at(eu, id |> String.to_integer |> rem(length(eu)))
+              [getChain(ch), users -- eu]
+            else
+              ch = Enum.at(us, id |> String.to_integer |> rem(length(us)))
+              [getChain(ch), Enum.at(errorUser,1)]
+            end
+          end
+        else
+          # ----1----
+          us = users -- Enum.at(errorUser, 1)
+          ch = Enum.at(us, id |> String.to_integer |> rem(length(us)))
+          User.setUser(ch)
+          [getChain(ch), Enum.at(errorUser,1)]
         end
+      else
+        # -----1------
+        us = users -- Enum.at(errorUser, 1)
+        ch = Enum.at(us, id |> String.to_integer |> rem(length(us)))
+        User.setUser(ch)
+        [getChain(ch), Enum.at(errorUser,1)]
       end
-      us = users -- Enum.at(errorUser, 1)
-      ch = Enum.at(us, id |> String.to_integer |> rem(length(us)))
-      User.setUser(ch)
-      [getChain(ch), Enum.at(errorUser,1)]
+
     else
       block = Crypto.put_hash(Block.zero)
       |> Map.from_struct
@@ -129,14 +147,15 @@ defmodule BlockChain.Chain do
   end
 
   def confirm(chain, id) do
-    Transaction.confirm(chain.data, id) and valid?(chain, id)
+    block = getChain(id) |> hd
+    chain.index > block.index and Transaction.confirm(chain.data, id) and valid?(chain, id)
     |> if do
       insert chain, id
     end
   end
 
-  def vote() do
-    vot = User.getUsers()
+  def vote(usrs) do
+    vot = usrs
     |>Enum.reduce_while([], fn user, acc ->
 
       try do
@@ -171,33 +190,27 @@ defmodule BlockChain.Chain do
 
     end)
     if length(vot) == 1 do
-      []
+      vot
+      |> hd
+      |> Enum.at 1
     else
-      v = Enum.reduce_while(vot, [0,[]], fn i,max ->
+      v = Enum.reduce_while(vot, [], fn i,max ->
         inte = Enum.at(i,1)
         |> length
-        i_max = Enum.at(max,1)
+        i_max = max
         |> length
         
         
         if(inte > i_max) do
-          IO.inspect inte
-          {:cont, i}
+          {:cont, Enum.at(i,1)}
         else
           {:cont, max}
         end
       end)
-      Enum.reduce(vot -- [v], [], fn chain, users ->
-        Enum.reduce(Enum.at(chain, 1), nil, fn user, _c ->
-          User.deleteUser(user)
-        end)
-      end)
-
-      Enum.at(v,1)
     end
   end
 
-  def errorNew(id, errorUser) do
+  def errorNew(id) do
     chain = creatChain(id)
     tran = Transaction.creatTran(id)
     :ets.insert(String.to_atom("chain" <> id), [block: (hd chain), tran: tran ])

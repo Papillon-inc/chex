@@ -12,7 +12,10 @@ defmodule BlockChainWeb.ChainChannel do
     def handle_in("new",params,socket) do
         ch = Chain.new(params["id"])
         if ch != [] do
-            broadcast_from!(socket, "errorChain", %{error: ch})
+            IO.inspect ch
+            User.setError(ch)
+            IO.inspect User.getError
+            broadcast_from!(socket, "errorChain", %{})
         end
         push(socket,"new", %{chain: Chain.getChain(params["id"])})
         {:noreply, socket}
@@ -59,7 +62,18 @@ defmodule BlockChainWeb.ChainChannel do
     end
 
     def handle_in("errorUser", params, socket) do
-        Chain.errorNew(params["id"], params["error"])
+        id = params["id"]
+        error = User.getError
+        Enum.any?(error, fn x -> x == id end)
+        |> if do
+            Chain.errorNew(id)
+        end
+        {:noreply, socket}
+    end
+
+    def handle_in("getPoint", params, socket) do
+        id = params["id"]
+        push(socket,"point", %{point: User.getPoint(Chain.getChain(id), id)})
         {:noreply, socket}
     end
 
@@ -75,7 +89,7 @@ defmodule BlockChainWeb.ChainChannel do
     end
 
     def handle_out("errorChain", params, socket) do
-        push(socket, "inform", %{error: params.error, mode: "2"})
+        push(socket, "inform", %{mode: "2"})
         {:noreply, socket}
     end
 

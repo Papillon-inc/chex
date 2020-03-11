@@ -40,11 +40,14 @@ let Chain = {
             }else if(payload.mode == "1"){
                 channel.push("newTran", {tran_id: payload.id, id: id.value})
             }else if(payload.mode == "2"){
-                const user = payload.error.find(error => error == id.value)
-                if(user){
-                    channel.push("errorUser",{id: id.value, error: payload.error})
-                }
+
+            channel.push("errorUser",{id: id.value})
             }
+        })
+
+        channel.on("point", payload => {
+            console.log("aaaaaaaaaaaaaa")
+            console.log(payload)
         })
 
         document.getElementById("new").onclick = () =>{this.newChain(channel, id.value)}
@@ -54,6 +57,7 @@ let Chain = {
         document.getElementById("delete").onclick = () => {this.deleteUser(channel, id.value)}
         document.getElementById("setUser").onclick = () => {this.setUser(channel, id.value, us.value)}
         document.getElementById("e_new").onclick = () => {this.eNew(channel, id.value)}
+        document.getElementById("point").onclick = () => {this.getPoint(channel, id.value)}
     },
 
     newChain:function(channel, id){
@@ -83,6 +87,10 @@ let Chain = {
 
     eNew: function(channel, id){
         channel.push("e_new", {id: id})
+    },
+
+    getPoint: function(channel, id){
+        channel.push("getPoint",{id: id})
     },
 }
 
