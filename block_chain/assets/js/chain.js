@@ -36,18 +36,31 @@ let Chain = {
             console.log(payload)
             console.log(id.value)
             if(payload.mode == "0"){
-                channel.push("newChain", {chain_id: payload.id, id: id.value})
+                channel.push("newChain", {id: id.value})
             }else if(payload.mode == "1"){
                 channel.push("newTran", {tran_id: payload.id, id: id.value})
             }else if(payload.mode == "2"){
 
             channel.push("errorUser",{id: id.value})
+            }else if(payload.mode == "3"){
+                channel.push("checkChain",{id: id.value})
             }
+        })
+
+        channel.on("errorTran", payload =>{
+            console.log("Your Tran is error")
+            console.log(payload.tran)
         })
 
         channel.on("point", payload => {
             console.log("aaaaaaaaaaaaaa")
             console.log(payload)
+        })
+
+        channel.on("getEC", payload =>{
+            console.log("error:"+payload.error)
+            console.log("chain:"+payload.chain)
+            console.log("errorChain:"+payload.errorChain)
         })
 
         document.getElementById("new").onclick = () =>{this.newChain(channel, id.value)}
@@ -58,6 +71,9 @@ let Chain = {
         document.getElementById("setUser").onclick = () => {this.setUser(channel, id.value, us.value)}
         document.getElementById("e_new").onclick = () => {this.eNew(channel, id.value)}
         document.getElementById("point").onclick = () => {this.getPoint(channel, id.value)}
+        document.getElementById("getEC").onclick = () => {this.getEC(channel, id.value)}
+        document.getElementById("reset").onclick = () => {this.reset(channel, id.value)}
+        document.getElementById("e_tran").onclick = () => {this.e_tran(channel, id.value, sender.value, reci.value, amount.value)}
     },
 
     newChain:function(channel, id){
@@ -91,6 +107,18 @@ let Chain = {
 
     getPoint: function(channel, id){
         channel.push("getPoint",{id: id})
+    },
+
+    getEC: function(channel, id){
+        channel.push("getEC",{})
+    },
+
+    reset: function(channel, id){
+        channel.push("reset",{})
+    },
+
+    e_tran: function(channel, id, sender, reci, amount){
+        channel.push("e_tran", {id: id, sender: sender, recipient: reci, amount: amount})
     },
 }
 

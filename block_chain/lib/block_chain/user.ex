@@ -6,6 +6,8 @@ defmodule BlockChain.User do
     def start_link(state \\ []) do
         GenServer.start_link(__MODULE__ ,state, name: User)
         GenServer.start_link(__MODULE__ ,state, name: ErrorUser)
+        GenServer.start_link(__MODULE__ ,state, name: ChainUser)
+        GenServer.start_link(__MODULE__ ,state, name: ErrorChain)
     end
 
     def handle_call(:get, _from, state), do: {:reply, state, state}
@@ -18,6 +20,8 @@ defmodule BlockChain.User do
     def handle_cast({:delete, user}, state), do: {:noreply, state --[user]}
 
     def handle_cast({:setError, users}, state), do: {:noreply, users}
+
+    def handle_cast(:reset, _state), do: {:noreply, []}
 
     def setUser(user) do
         GenServer.cast(User, {:set, user})
@@ -54,9 +58,24 @@ defmodule BlockChain.User do
 
     def setError(users), do: GenServer.cast(ErrorUser, {:setError, users})
 
+    def addError(user), do: GenServer.cast(ErrorUser, {:set, user})
+
     def getError(), do: GenServer.call(ErrorUser, :get)
 
     def deleteError(user), do: GenServer.cast(ErrorUser, {:delete, user})
+
+    def setChain(user), do: GenServer.cast(ChainUser, {:set, user})
+
+    def getChain(), do: GenServer.call(ChainUser, :get)
+
+    def deleteChain(user), do: GenServer.cast(ChainUser, {:delete, user})
+
+    def resetChain(), do: GenServer.cast(ChainUser, :reset)
+
+    def setErrorChain(chain), do: GenServer.cast(ErrorChain, {:setError, chain})
+
+    def getErrorChain(), do: GenServer.call(ErrorChain, :get)
+
 end
 
 BlockChain.User.start_link()

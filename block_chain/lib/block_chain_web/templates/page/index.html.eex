@@ -14,6 +14,9 @@
   <button type="button" id="setUser">setUser</button>
   <button type="button" id="point">point</button>
   <button type="button" id="e_new">e_new</button>
+  <button type="button" id="getEC">getEC</button>
+  <button type="button" id="reset">reset</button>
+    <button type="button" id="e_tran">e_tran</button>
 
   <br>user:<input type="textbox" id="user">
   <br><br>

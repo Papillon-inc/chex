@@ -22,17 +22,20 @@ defmodule BlockChain.Chain do
   end
 
   @doc "Insert given data as a new block in the blockchain"
-  def insert(blockchain, data, id) when is_list(blockchain) do
+  def insert(blockchain, tran, id) when is_list(blockchain) do
     %{hash: prev, index: index} = hd blockchain
+    data = tran.tran
 
     block =
     data
     |> Block.new(prev, index)
     |> Crypto.put_hash
     |> Map.from_struct
-    Transaction.reset(id)
+    Transaction.deleteTran(data, id)
   
     :ets.insert(String.to_atom("chain" <> id), {:block, [block | blockchain]})
+    User.setChain(id)
+    User.setErrorChain tran.error
     getChain(id)
     # setChain(block)
 
@@ -68,7 +71,7 @@ defmodule BlockChain.Chain do
   end
 
   def creatChain(id) do
-    
+    if(User.getChain == []) do
     errorUser = User.getUsers() |> Enum.reduce_while([nil,[],true], fn user, acc ->
       try do
         chain = user |> getChain
@@ -111,7 +114,6 @@ defmodule BlockChain.Chain do
           if Enum.all?(tl(error), fn(us) -> bl == getChain(us) end) do
             us = Enum.at(errorUser, 1)
             ch = Enum.at(us, id |> String.to_integer |> rem(length(us)))
-            User.setUser(ch)
             [getChain(ch), users -- Enum.at(errorUser,1)]
           else
             eu = vote(Enum.at(errorUser,1))
@@ -128,14 +130,12 @@ defmodule BlockChain.Chain do
           # ----1----
           us = users -- Enum.at(errorUser, 1)
           ch = Enum.at(us, id |> String.to_integer |> rem(length(us)))
-          User.setUser(ch)
           [getChain(ch), Enum.at(errorUser,1)]
         end
       else
         # -----1------
         us = users -- Enum.at(errorUser, 1)
         ch = Enum.at(us, id |> String.to_integer |> rem(length(us)))
-        User.setUser(ch)
         [getChain(ch), Enum.at(errorUser,1)]
       end
 
@@ -144,13 +144,66 @@ defmodule BlockChain.Chain do
       |> Map.from_struct
       [[block],Enum.at(errorUser,1)]
     end
+
+    else
+      chainUser = User.getChain
+      errorUser = User.getError
+      if(chainUser |> length >= errorUser |> length) do
+        ch = randomGet chainUser, id
+        if ch do
+          chain = getChain ch
+          User.setChain(id)
+          [chain,[]]
+        else
+          User.resetChain
+          creatChain id
+        end
+        
+      else
+        err = randomGet errorUser, id
+        if err do
+          error = getChain err
+          User.setError(id)
+          [error, []]
+        else
+          User.setError []
+          creatChain id
+        end
+      end
+    end
   end
 
-  def confirm(chain, id) do
+  def randomGet(users, id) do
+    user = users
+    Enum.reduce_while(users, false, fn x, acc-> 
+      ch = Enum.at(user, id |> String.to_integer |> rem(length(user)))
+      try do
+        getChain ch
+        {:halt, ch}
+      rescue
+        e in ArgumentError -> User.deleteUser(ch)
+        user -- [ch]
+        {:cont, acc}
+      end
+    end)
+  end
+
+  def confirm(id) do
+    ch = User.getChain
+    chain = Enum.at(ch, id |> String.to_integer |> rem(length(ch))) |> getChain |> hd
     block = getChain(id) |> hd
-    chain.index > block.index and Transaction.confirm(chain.data, id) and valid?(chain, id)
-    |> if do
+    if chain.index > block.index and Transaction.confirm(chain.data, id) and valid?(chain, id) do
+      User.setChain id
+      
+      if User.getErrorChain != [] do
+        User.getErrorChain ++ chain.data
+      else
+        chain.data
+      end
+      |> Transaction.deleteTran id
       insert chain, id
+    else
+      User.addError id
     end
   end
 
@@ -214,5 +267,36 @@ defmodule BlockChain.Chain do
     chain = creatChain(id)
     tran = Transaction.creatTran(id)
     :ets.insert(String.to_atom("chain" <> id), [block: (hd chain), tran: tran ])
+  end
+
+  def check(id) do
+    chain = User.getChain
+    error = User.getError
+    if chain |> length >= error |> length do
+      Enum.any?(error, fn x -> x == id end)
+      |> if do
+        ch = randomGet chain, id
+        if ch do
+          :ets.insert(String.to_atom("chain" <> id), [block: getChain(ch), tran: Transaction.getTran(ch)])
+          true
+        else
+          errorNew id
+          false
+        end
+      else
+        true
+      end
+    else
+      Enum.any?(chain, fn x -> x == id end)
+      |> if do
+        ch = randomGet error, id
+        if ch do
+          :ets.insert(String.to_atom("chain" <> id), [block: getChain(ch), tran: Transaction.getTran(ch)])
+        else
+          errorNew id
+        end
+      end
+      false
+    end
   end
 end
