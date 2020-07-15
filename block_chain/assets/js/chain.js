@@ -40,8 +40,7 @@ let Chain = {
             }else if(payload.mode == "1"){
                 channel.push("newTran", {tran_id: payload.id, id: id.value})
             }else if(payload.mode == "2"){
-
-            channel.push("errorUser",{id: id.value})
+                channel.push("errorUser",{id: id.value})
             }else if(payload.mode == "3"){
                 channel.push("checkChain",{id: id.value})
             }

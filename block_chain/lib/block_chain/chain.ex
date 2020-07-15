@@ -6,7 +6,6 @@ defmodule BlockChain.Chain do
   alias BlockChain.User
 
   def getChain(id) do
-    # GenServer.call(__MODULE__, :get)
     block = :ets.lookup(String.to_atom("chain" <> id), :block)
     block[:block]
   end

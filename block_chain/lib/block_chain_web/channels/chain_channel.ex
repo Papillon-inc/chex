@@ -16,7 +16,7 @@ defmodule BlockChainWeb.ChainChannel do
             broadcast_from!(socket, "errorChain", %{})
             spawn(BlockChainWeb.ChainChannel, :deleteError,[])
         end
-        push(socket,"new", %{chain: Chain.getChain(params["id"])})
+        # push(socket,"new", %{})
         {:noreply, socket}
     end
 
@@ -33,8 +33,8 @@ defmodule BlockChainWeb.ChainChannel do
     def handle_in("push",params,socket) do
         tran = Transaction.insert(params["sender"], params["recipient"], params["amount"], params["id"])
         if tran do
-        broadcast_from!(socket, "newTran", %{id: params["id"]})
-        push(socket,"tran", %{transaction: tran})
+            broadcast_from!(socket, "newTran", %{id: params["id"]})
+            # push(socket,"tran", %{})
         end
         {:noreply, socket}
     end
@@ -48,7 +48,7 @@ defmodule BlockChainWeb.ChainChannel do
                 tran = Transaction.point chain, id
                 blockchain = Chain.insert(chain, tran, id)
                 broadcast_from!(socket, "newChain", %{})
-                push(socket, "chain", %{chain: chain})
+                # push(socket, "chain", %{})
                 spawn(BlockChainWeb.ChainChannel, :afterChain, [socket, id])
             else
                 spawn(BlockChainWeb.ChainChannel, :oneMinChain, [socket, id])
@@ -68,7 +68,7 @@ defmodule BlockChainWeb.ChainChannel do
         tran = Transaction.point chain, id
         blockchain = Chain.insert(chain, tran, id)
         broadcast_from!(socket, "newChain", %{})
-        push(socket, "chain", %{chain: chain})
+        # push(socket, "chain", %{})
         spawn(BlockChainWeb.ChainChannel, :afterChain, [socket, id])
         else
             Chain.confirm(id)
@@ -81,7 +81,6 @@ defmodule BlockChainWeb.ChainChannel do
             broadcast!(socket, "checkChain", %{})
         end
         :timer.sleep(6000)
-        IO.inspect "ok"
         User.resetChain
         User.setError([])
         User.setErrorChain []
@@ -103,7 +102,7 @@ defmodule BlockChainWeb.ChainChannel do
             if error != [] do
                 tran = Transaction.checkError(error, params["id"])
                 if tran != [] do
-                    push(socket, "errorTran", %{tran: tran})
+                    # push(socket, "errorran", %{tran: tran})
                 end
             end
         end
@@ -113,13 +112,7 @@ defmodule BlockChainWeb.ChainChannel do
     def handle_in("delete", params, socket) do
         id = params["id"]
         User.deleteUser(id)
-        spawn(BlockChainWeb.ChainChannel, :delete,[socket])
         {:noreply, socket}
-    end
-
-    def delete(socket) do
-        :timer.sleep(60000)
-        broadcast!(socket,"a",%{})
     end
 
     def handle_in("newChain", params, socket) do
@@ -184,7 +177,7 @@ defmodule BlockChainWeb.ChainChannel do
         :ets.new(String.to_atom("chain" <> id),[:set, :protected, :named_table])
         :ets.insert(String.to_atom("chain" <> id), [block: [block], tran: [] ])
         User.setUser(id)
-        push(socket, "get", %{chain: Chain.getChain(params["id"]), tran: Transaction.getTran(params["id"])})
+        # push(socket, "get", %{chain: Chain.getChain(params["id"]), tran: Transaction.getTran(params["id"])})
         {:noreply, socket}
     end
 
@@ -192,11 +185,6 @@ defmodule BlockChainWeb.ChainChannel do
         id = params["id"]
         User.setUser(id)
         push(socket, "user", %{user: User.getUsers})
-        {:noreply, socket}
-    end
-
-    def handle_out("a", params, socket) do
-        push(socket,"tran", %{a: "aaaaa"})
         {:noreply, socket}
     end
 

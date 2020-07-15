@@ -43,7 +43,6 @@ defmodule BlockChain.Transaction do
 
     def confirm(data,id) do
         tran = getTran(id)
-        IO.inspect data -- tran
         if data -- tran == [] do
             true
         else
@@ -60,7 +59,6 @@ defmodule BlockChain.Transaction do
                 p = Map.get(acc, sender, false)
                 if p do
                     points = p - String.to_integer(amount)
-                    IO.inspect points < 0
                     if points < 0 do
                         deleteTran [tran], id
                         Map.put(acc, :error, [tran | Map.get(acc, :error, [])])
@@ -81,7 +79,6 @@ defmodule BlockChain.Transaction do
             end
         end)
         |> Map.get(:error, [])
-        IO.inspect errorTran
         %{tran: trans -- errorTran, error: errorTran}
     end
 
