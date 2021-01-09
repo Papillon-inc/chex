@@ -1,3 +1,3 @@
-# 21st Century Schizoid Man
+# chex
 
 Block-chainned point system in Elixir.
